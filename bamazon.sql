@@ -1,4 +1,3 @@
-
 CREATE TABLE departments (
 	    id integer auto_increment not null, 
 	    department_name varchar(20) not null,
@@ -40,4 +39,3 @@ INSERT INTO products (product_name, department_id, price, stock_quantity)
 		('Maison Margiela', 3, "25.00", 15), 
 		('Stella McCartney', 3, "25.00", 15), 
 		('Escada', 3, "25.00", 15);
-

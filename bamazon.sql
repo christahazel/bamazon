@@ -1,6 +1,3 @@
-INSERT INTO departments (id, department_name, over_head_costs) 
-	VALUES ('makeup', 5000), ('skincare', 5000), ('fragrance', 5000);
-
 
 CREATE TABLE departments (
 	    id integer auto_increment not null, 
@@ -25,6 +22,11 @@ CREATE TABLE sales (
 	   PRIMARY KEY(id),
 	   FOREIGN KEY(product_id) references products(id)
    );
+
+
+INSERT INTO departments (id, department_name, over_head_costs) 
+	VALUES ('makeup', 5000), ('skincare', 5000), ('fragrance', 5000);
+
 
 INSERT INTO products (product_name, department_id, price, stock_quantity) 
 	VALUES 

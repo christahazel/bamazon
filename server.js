@@ -12,76 +12,60 @@ var connection = mysql.createConnection({
 
 connection.connect();
 
-function displayMenu() {
-    console.log("Menu Options (Manager View):".bold.blue);
-    console.log("1.".red + "View Products for Sale".bold);
-    console.log("2.".red + "View Low Inventory".bold);
-    console.log("3.".red + "Add to Inventory".bold);
-    console.log("4.".red + "Add New Product".bold);
+function startOrder() {
 
+connection.query('SELECT id, product_name, price, stock_quantity FROM products', function (error, results, fields)
+{
+    for (var i = 0; i < results.length; i++) {
+    console.log("ID: ".bold + results[i].id, "PRODUCT: ".bold + results[i].product_name, "PRICE: ".bold + results[i].price);
+    }
 
-var startOrder = function() {
+    inquirer.prompt([
 
-    connection.query("SELECT id, product_name, price, stock_quantity FROM products", function (error, results) 
-    {
-        // output results into terminal cleanly.
-        for (var i = 0; i < results.length; i++) {
-            var productID = results[i].id;
-            var productName = results[i].product_name;
-            var price = results[i].price;
-            var productObj = {id: productID, product_name: productName, price: price};
-
-            console.log("Product ID: " + productID + " Product Name: " + productName + " Price: " + price);
-        };
-
-        // begin prompt to take order
-        inquirer.prompt([{
-        type: "input",
-        name: "product_id",
-        message: "Please enter the product ID you would like to purchase: ",
-        validate: function(value) {
-                  if (isNaN(value) === false && value > 0 && value < results.length + 1) {
+        {
+            type: "input",
+            name: "product_id",
+            message: "Which item would you like to add to your cart? Enter by id.",
+            validate: function(value) {
+                if (isNaN(value) === false && value > 0 && value < results.length + 1) {
                     return true;
-                  } else {
-                      return false;
-                  }    
-              }    
-        }, {
-        type: "input",
-        name: "purchase_quant",
-        message: "Quantity you want to purchase: ",
-        validate: function(value) {
-                  if (isNaN(value) === false && value > 0) {
-                    return true;
-                  } else {
-                      return false;
                 }
-            }
+                    return false;
+                }
+          
+        }, 
+
+        {
+            type: "input",
+            name: "purchase_quant",
+            message: "How many would you like to buy?",
+            validate: function(value) {
+                if (isNaN(value) === false && value > 0) {
+                    return true;
+                }
+                    return false;
+        }
+        
         }]).then(function(data) {
+            var item = {};
             var id = data.product_id;
             var quant = data.purchase_quant;
             var item_name = results[id - 1].product_name;
             var item_price = results[id - 1].price;
-            var item = {};
 
             if (results[id - 1].stock_quantity - quant < 0 ) {
-                console.log("\nYour order could not be placed. We do not have enough in stock.\n");
-                startOrder();
+                console.log("Sorry, we don't have that much in stock.".bold);
             } else {
-                connection.query("UPDATE products SET stock_quantity = (stock_quantity - " + quant + ") WHERE id = " + id, function (error, results) 
-                {
+                connection.query("UPDATE products SET stock_quantity = (stock_quantity - " + quant + ") WHERE id = " + id, function (error, results) {
                     if (error) {
                         return console.log("There was an error updating the products table.");
-                    };
+                    }
                 });
-
-                connection.query("INSERT INTO sales (product_id, quantity_purchased) VALUES (" + id + ", " + quant + ")", function (error, results) 
-                {
+                connection.query("INSERT INTO sales (product_id, quantity_purchased) VALUES (" + id + ", " + quant + ")", function (error, results) {
                     if (error) {
-                        return console.log("Error inserting into sales table.");
-                    };
+                        return console.log("There was an error updating the products table.");
+                    }
                 });
-
                 item["item"] = item_name;
                 item["price"] = item_price;
                 item["quantity"] = quant;
@@ -92,4 +76,39 @@ var startOrder = function() {
             };
         });
     });
-};  
+}   
+
+function shopMore() {
+    inquirer.prompt([{
+        type: "confirm",
+        name: "shopMore",
+        message: "Do you want to shop more?".bold,
+        }]).then(function(data) {
+            if(!data.shopMore){
+                checkOut();
+            } else {
+                startOrder();
+            };
+        });
+};
+
+//take order and loop through that object
+//do math and give total price
+
+
+function checkOut(){
+    var total = 0;
+    console.log("Your Purchase:".bold);
+    for (var i = 0; i < order.length; i++){
+        console.log("Product: ".bold + order[i].item + " Quantity: ".bold + order[i].quantity + " Price: ".bold + order[i].price);
+        total += order[i].price * order[i].quantity;
+    };
+    console.log("Total: ".bold + total);
+    connection.end();
+}
+
+
+startOrder();
+
+
+
